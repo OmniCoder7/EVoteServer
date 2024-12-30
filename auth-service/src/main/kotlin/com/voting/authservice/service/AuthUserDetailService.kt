@@ -5,8 +5,10 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
 
 @Service
-class AuthUserDetailService : UserDetailsService {
-    override fun loadUserByUsername(username: String?): UserDetails? {
-        return null
+class AuthUserDetailService(
+    private val userService: UserService,
+) : UserDetailsService {
+    override fun loadUserByUsername(username: String): UserDetails? {
+        return userService.getUserByUsername(username)
     }
 }
