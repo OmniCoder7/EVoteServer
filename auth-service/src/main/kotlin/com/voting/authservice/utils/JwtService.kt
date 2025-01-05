@@ -6,11 +6,8 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
-import java.time.Duration
-import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -24,7 +21,6 @@ class JwtService(
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
-
     private val secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
     @OptIn(ExperimentalUuidApi::class)
@@ -103,11 +99,6 @@ class JwtService(
 
     fun isRevoked(token: String): Boolean {
         val jti = getClaim(token, "jti") as String? ?: throw IllegalArgumentException("Token ID (jti) is missing")
-        return redisService.isTokenPresent(jti) // Check Redis for the revoked JTI
-    }
-
-    fun revokeToken(token: String) {
-        val jti = getClaim(token, "jti") as String? ?: throw IllegalArgumentException("Token ID (jti) is missing")
-        redisService.save(value = jti, ttl = Duration.of(getAllClaims(token).expiration.time, ChronoUnit.MINUTES), key = ACCESS_TOKEN)
+        return redisService.isKeyPresent(ACCESS_TOKEN) // Check Redis for the revoked JTI
     }
 }

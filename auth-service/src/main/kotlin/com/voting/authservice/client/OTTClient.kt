@@ -11,5 +11,5 @@ interface OTTClient {
     fun sendToken(@RequestParam("username") username: String)
 
     @PostMapping("/login/ott", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
-    fun submit(@RequestParam("token") token: String, @RequestParam("client-id") clientId: String, @RequestParam("token-type") tokenType: String)
+    fun submit(@RequestParam("token") token: String, @RequestParam("username") username: String, @RequestParam("token-type") tokenType: String)
 }

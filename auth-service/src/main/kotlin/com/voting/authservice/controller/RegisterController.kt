@@ -5,6 +5,8 @@ import com.voting.authservice.dto.request.RegisterRequest
 import com.voting.authservice.dto.response.Response
 import com.voting.authservice.model.TokenType
 import com.voting.authservice.service.RegisterService
+import com.voting.authservice.utils.ATTRIBUTE
+import jakarta.servlet.http.HttpSession
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,32 +18,25 @@ import org.springframework.web.bind.annotation.*
 class RegisterController(
     private val registerService: RegisterService,
     private val passwordEncoder: PasswordEncoder,
-    private val oTTClient: OTTClient
+    private val oTTClient: OTTClient,
 ) {
 
-    @PostMapping("/start")
-    fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<Response> {
+    @PostMapping("/initiateRegistration")
+    fun register(@RequestBody registerRequest: RegisterRequest, session: HttpSession): ResponseEntity<Response> {
         val registerResponse =
             registerService.register(registerRequest.copy(password = passwordEncoder.encode(registerRequest.password)))
+        session.setAttribute(ATTRIBUTE.USERNAME_ATTRIBUTE, registerResponse.first.username)
+        session.setAttribute(ATTRIBUTE.TOKEN_TYPE_ATTRIBUTE, TokenType.REGISTER.name)
         oTTClient.sendToken(registerRequest.email)
         return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.AUTHORIZATION, registerResponse.second)
             .body(Response.Success(registerResponse.first))
     }
 
-    @PostMapping("/verify-email/{token}")
-    fun verify(@PathVariable token: String, @RequestParam clientId: String) {
-        oTTClient.submit(token, clientId, TokenType.REGISTER.name)
-    }
-
-    @GetMapping("/auth/register/verify")
-    fun verifyEmail(@RequestHeader(HttpHeaders.AUTHORIZATION) clientId: String): ResponseEntity<String> {
-        registerService.verify(clientId)
-        return ResponseEntity.ok("Email verified successfully")
-    }
-
-    @GetMapping("/verify-email/{clientId}")
-    fun resendOTT(@PathVariable clientId: String): ResponseEntity<String> {
-        val user = registerService.findByClientId(clientId) ?: return ResponseEntity.notFound().build()
+    @GetMapping("/verify-email/{username}")
+    fun resendOTT(@PathVariable username: String, session: HttpSession): ResponseEntity<String> {
+        val user = registerService.findByUsername(username) ?: return ResponseEntity.notFound().build()
+        session.setAttribute(ATTRIBUTE.USERNAME_ATTRIBUTE, username)
+        session.setAttribute(ATTRIBUTE.TOKEN_TYPE_ATTRIBUTE, TokenType.REGISTER.name)
         oTTClient.sendToken(user.username)
         return ResponseEntity.ok("One Time Token sent successfully")
     }

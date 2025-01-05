@@ -5,9 +5,9 @@ import org.springframework.security.authentication.ott.OneTimeTokenAuthenticatio
 
 data class OTTAuthenticationToken(
     private val token: String,
-    val clientId: String,
+    private val userName: String,
     val tokenType: TokenType
 ): OneTimeTokenAuthenticationToken(
-    clientId,
+    userName,
     token
 )

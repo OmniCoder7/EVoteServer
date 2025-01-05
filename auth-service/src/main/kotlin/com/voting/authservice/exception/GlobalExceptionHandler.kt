@@ -22,8 +22,8 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ex.message)
     }
 
-    @ExceptionHandler(UserNotFound::class)
-    fun handleUserNotFoundException(ex: UserNotFound): ResponseEntity<String> {
+    @ExceptionHandler(UserNotFoundException::class)
+    fun handleUserNotFoundException(ex: UserNotFoundException): ResponseEntity<String> {
         return ResponseEntity.notFound().build()
     }
 }

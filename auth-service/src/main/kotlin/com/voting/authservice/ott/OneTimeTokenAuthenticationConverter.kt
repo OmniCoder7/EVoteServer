@@ -1,7 +1,7 @@
 package com.voting.authservice.ott
 
-import com.voting.authservice.exception.MissingHeaderException
 import com.voting.authservice.model.TokenType
+import com.voting.authservice.utils.ATTRIBUTE
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken
 import org.springframework.security.web.authentication.AuthenticationConverter
@@ -12,14 +12,9 @@ class OneTimeTokenAuthenticationConverter(
 ) : AuthenticationConverter {
     override fun convert(request: HttpServletRequest?): OneTimeTokenAuthenticationToken? {
         if (request == null) return null
-        val token = request.getParameter("token") ?: throw MissingHeaderException("Token header is missing")
-        val clientId = request.getParameter("client-id") ?: throw MissingHeaderException("client-id header is missing")
-        val tokenType =
-            when (request.getParameter("token-type") ?: throw MissingHeaderException("Token-type header is missing")) {
-                TokenType.REGISTER.name -> TokenType.REGISTER
-                TokenType.PASSWORD_RESET.name -> TokenType.PASSWORD_RESET
-                else -> throw IllegalArgumentException("Invalid token type")
-            }
-        return OTTAuthenticationToken(token = token, clientId = clientId, tokenType = tokenType)
+        val token = request.session.getAttribute(ATTRIBUTE.OTT_TOKEN_ATTRIBUTE) as String
+        val username = request.session.getAttribute(ATTRIBUTE.USERNAME_ATTRIBUTE) as String
+        val tokenType = TokenType.getToken(request.session.getAttribute(ATTRIBUTE.TOKEN_TYPE_ATTRIBUTE) as String)
+        return OTTAuthenticationToken(token = token, userName = username, tokenType = tokenType)
     }
 }

@@ -1,5 +1,7 @@
 package com.voting.authservice.ott
 
+import com.voting.authservice.model.OTT
+import com.voting.authservice.utils.ATTRIBUTE
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.ott.OneTimeToken
@@ -11,12 +13,13 @@ import org.springframework.web.util.UriComponentsBuilder
 @Service
 class MagicLinkOneTimeTokenGenerationSuccessHandler : OneTimeTokenGenerationSuccessHandler {
     override fun handle(request: HttpServletRequest, response: HttpServletResponse, oneTimeToken: OneTimeToken) {
+        val ott = oneTimeToken as OTT
         val builder =
             UriComponentsBuilder.fromUriString(UrlUtils.buildFullRequestUrl(request)).replacePath(request.contextPath)
-                .replaceQuery(null).fragment(null).path("/login/ott").queryParam("token", oneTimeToken.tokenValue)
+                .queryParam(ATTRIBUTE.USERNAME_ATTRIBUTE, ott.username)
+                .queryParam(ATTRIBUTE.OTT_TOKEN_ATTRIBUTE, ott.tokenValue)
+                .queryParam(ATTRIBUTE.TOKEN_TYPE_ATTRIBUTE, ott.tokenType)
+                .build()
         val magicLink = builder.toUriString()
-
-        // RedirectOneTimeTokenGenerationSuccessHandler(specific page's link).handle(request, response, oneTimeToken)
-        // use above code to redirect to the user to a specific page after generating the token
     }
 }

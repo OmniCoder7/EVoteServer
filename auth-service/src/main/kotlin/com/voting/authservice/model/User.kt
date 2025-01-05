@@ -48,7 +48,11 @@ data class User @OptIn(ExperimentalUuidApi::class) constructor(
 
     @NotNull(message = "Email cannot be null") @Email(message = "Email should be valid") @Column(
         unique = true, nullable = false
-    ) private val email: String = "",
+    ) val email: String = "",
+
+    @NotNull(message = "Email cannot be null") @Email(message = "Email should be valid") @Column(
+        unique = true, nullable = false
+    ) private val userName: String = "",
 
     @NotNull(message = "Password cannot be null") @Size(
         min = 8, max = 100, message = "Password must be between 8 and 100 characters"
@@ -87,7 +91,7 @@ data class User @OptIn(ExperimentalUuidApi::class) constructor(
     }
 
     override fun getUsername(): String {
-        return email
+        return userName
     }
 
     override fun isAccountNonExpired(): Boolean {

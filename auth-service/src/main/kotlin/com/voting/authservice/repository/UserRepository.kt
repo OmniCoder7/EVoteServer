@@ -11,6 +11,6 @@ interface UserRepository: JpaRepository<User, String> {
     @Modifying
     @Query("update User u set u.isUserEnabled = true where u.clientId = ?1")
     fun enableUser(clientId: String)
-    fun findByClientId(clientId: String): MutableList<User>
     fun findByEmail(email: String): MutableList<User>
+    fun findByUsername(username: String): MutableList<User>
 }

@@ -2,6 +2,7 @@ package com.voting.authservice.service
 
 import com.voting.authservice.dto.request.LoginRequest
 import com.voting.authservice.model.RefreshToken
+import com.voting.authservice.ott.OneTimeTokenAuthenticationFailureHandler
 import com.voting.authservice.repository.RefreshTokenRepository
 import com.voting.authservice.repository.UserRepository
 import com.voting.authservice.utils.JwtService
@@ -28,16 +29,16 @@ class LoginService(
         if (passwordEncoder.matches(loginRequest.password, user.password).not()) {
             throw IllegalArgumentException("Invalid password")
         }
-        val accessToken = jwtService.generateAccessToken(user.username)
+        val accessToken = jwtService.generateAccessToken(user.email)
         val refreshToken = RefreshToken(
-           refreshToken = jwtService.generateRefreshToken(user.username), deviceInfo = loginRequest.deviceInfo
+           refreshToken = jwtService.generateRefreshToken(user.email), deviceInfo = loginRequest.deviceInfo
         )
         refreshTokenRepository.save(refreshToken)
         return accessToken
     }
 
     fun getRefreshToken(userDetails: UserDetails): String {
-        val user = userRepository.findByEmail(userDetails.username).firstOrNull() ?: run {
+        val user = userRepository.findByUsername(userDetails.username).firstOrNull() ?: run {
             logger.info("User with email ${userDetails.username} not found")
             throw UsernameNotFoundException("User with email ${userDetails.username} not found")
         }
@@ -52,11 +53,9 @@ class LoginService(
         val expiration = Instant.ofEpochMilli(jwtService.getClaim(refreshToken.refreshToken, "exp") as Long)
         if (expiration.isBefore(Instant.now())) {
             logger.info("Refresh token expired")
-            refreshToken.refreshToken = jwtService.generateRefreshToken(user.username)
+            refreshToken.refreshToken = jwtService.generateRefreshToken(user.email)
             refreshTokenRepository.updateToken(refreshToken.refreshToken, refreshToken.refreshTokenId)
         }
         return refreshToken.refreshToken
     }
-
-
 }
